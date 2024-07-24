@@ -1,5 +1,9 @@
 %% 此脚本基于igesToolbox和自编函数用于处理igs文件得到翼型数据然后导入Openvsp可以绘制机翼用于后续处理
 % 转化后的单位为m
+% 
+% Yingjian Li
+% 2024/7/24
+
 clc;clear
 
 %% step 0: 输入文件名称和初始设置
