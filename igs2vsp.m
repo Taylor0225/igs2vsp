@@ -14,6 +14,7 @@ dp_mat            = [20;20]; % 切割方向网格间距
 nppos_mat         = [300;150]; % 切割正方向点数量
 cutXposition      = [5000;6000];% x方向切割坐标
 cutYposition      = [10;3990]; % y方向切割坐标
+unit              = "mm";   % 单位  
 
 % 添加相关函数路径
 addpath(genpath(".\igesToolbox\"));
@@ -145,7 +146,7 @@ fclose(id);
 %% step 5：调用整理翼型数据的函数
 clc
 
-GetAirfoilFun("UpSurf","DownSurf","mm")
+GetAirfoilFun("UpSurf","DownSurf",unit)
 
 
 
