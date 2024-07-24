@@ -1,0 +1,157 @@
+function GetAirfoilFun(upfileName,downfileName,unit)
+arguments
+
+    
+%% 本函数用于读取上下表面的翼型数据文件并生成翼型数据标准dat文件
+clc;clear
+
+upfilename="../output"+upfileName;
+downfilename="../output"+downfileName;
+unit="mm";
+
+
+switch  unit
+    case "m"
+        unit_temp=1;
+
+
+    case "mm"
+        unit_temp=1/1000;
+
+
+    case "cm"
+        unit_temp=1/100;
+end
+
+%% 读取上表面数据
+id=fopen(upfilename,'rt');
+upDataGroup=[];
+
+while ~feof(id)
+    line=fgetl(id);
+    point=str2num(line);
+    if numel(point)==1
+        upDataGroup(end+1).data=[];
+    elseif numel(point)==3
+        upDataGroup(end).data(end+1,:)=point*unit_temp;
+    else
+        disp('error')
+    end
+end
+
+for i=1:numel(upDataGroup)
+    y(i)=abs(upDataGroup(i).data(1,2));
+end
+
+[~,index]=sort(y,'ascend');
+oldgroup=upDataGroup;
+
+for i=1:numel(index)
+    upDataGroup(i)=oldgroup(index(i));
+end
+clear oldgroup
+fclose(id);
+
+%% 读取下表面数据
+id=fopen(downfilename,'rt');
+downDataGroup=[];
+
+while ~feof(id)
+    line=fgetl(id);
+    point=str2num(line);
+    if numel(point)==1
+        downDataGroup(end+1).data=[];
+    elseif numel(point)==3
+        downDataGroup(end).data(end+1,:)=point*unit_temp;
+    else
+        disp('error')
+    end
+end
+
+for i=1:numel(downDataGroup)
+    y(i)=abs(downDataGroup(i).data(1,2));
+end
+
+[~,index]=sort(y,'ascend');
+oldgroup=downDataGroup;
+
+for i=1:numel(index)
+    downDataGroup(i)=oldgroup(index(i));
+end
+
+clear oldgroup
+fclose(id);
+
+%% 构建翼型类
+for i=1:numel(upDataGroup)
+    % 名字内部i-1是方便vsp建模
+    airfoil(i)=AirFoil(strcat('airfoil_',num2str(i-1)),upDataGroup(i).data,downDataGroup(i).data);
+    airfoil(i).OutputAirfoilDatFile(2)
+end
+
+for i=1:numel(airfoil)
+    angle(i)=airfoil(i).RoateAngle;
+end
+
+for i=1:numel(airfoil)
+    Dx_c(i)=airfoil(i).LeadEdgeLocation(1)/airfoil(i).Chord;
+end
+
+for i=1:numel(airfoil)
+    Dy_c(i)=airfoil(i).LeadEdgeLocation(3)/airfoil(i).Chord;
+end
+
+for i=1:numel(airfoil)
+    y(i)=abs(airfoil(i).SpanWiseLocation);
+end
+
+for i=1:numel(airfoil)
+    c(i)=airfoil(i).Chord;
+end
+dy=diff(y);
+%% 输出格式文件
+clc
+id=fopen("airfoil.txt","w");
+
+fprintf(id,"%8s     %8s     %8s     %8s","SecIndex", "Spanwise" ,"Root","Tip");
+
+for i=1:(numel(upDataGroup)-1)
+
+    fprintf(id,"\n %8d      %8f     %8f     %8f",i,dy(i),c(i),c(i+1));
+
+end
+
+
+
+fprintf(id,"\n\n\n%10s     %10s     %10s     %10s","AirfoilId", "dx/c" ,"dy/c","angle");
+fprintf(id,"\n 注释：基于OpenVSP格式要求，下边的angle自动取了负号");
+
+for i=1:(numel(upDataGroup))
+
+    fprintf(id,"\n %10d      %10f     %10f     %10f",i-1,Dx_c(i),Dy_c(i),-angle(i));
+
+end
+
+
+fclose(id);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
